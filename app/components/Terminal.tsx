@@ -22,79 +22,69 @@ export default function Terminal() {
     'TYPE A COMMAND OR MESSAGE...',
   ];
 
+  // Boot sequence: append each line one at a time
   useEffect(() => {
     let i = 0;
 
-    const interval = setInterval(() => {
-      setOutput((prev) => [...prev, bootLines[i]]);
-      i++;
-
-      if (i >= bootLines.length) {
-        clearInterval(interval);
+    const appendNextLine = () => {
+      if (i < bootLines.length) {
+        setOutput((prev) => [...prev, bootLines[i]]);
+        i++;
+        setTimeout(appendNextLine, 450);
+      } else {
         setBooting(false);
         setTimeout(() => inputRef.current?.focus(), 300);
       }
-    }, 450);
+    };
 
-    return () => clearInterval(interval);
+    appendNextLine();
   }, []);
 
+  // Scroll to bottom whenever output changes
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [output, loading]);
 
-  const fakeHackerResponses = [
-    '>> PACKET INTERCEPTED...',
-    '>> DECRYPTING NODE...',
-    '>> ACCESSING MAINFRAME...',
-    '>> FIREWALL BREACHED',
-    '>> UPLOADING PAYLOAD...',
-    '>> SIGNAL TRACE LOST...',
-  ];
+  const runCommand = async () => {
+    if (!input.trim()) return;
 
-const runCommand = async () => {
-  if (!input.trim()) return;
+    const userCommand = input.trim().toLowerCase();
+    setOutput((prev) => [...prev, `$ ${input}`]);
+    setLoading(true);
 
-  const userCommand = input.trim().toLowerCase();
+    try {
+      let endpoint = '';
+      let query = '';
 
-  setOutput((prev) => [...prev, `$ ${input}`]);
-  setLoading(true);
+      if (userCommand.startsWith('scan ')) {
+        const name = userCommand.replace('scan ', '');
+        endpoint = `/scan`;
+        query = `?name=${encodeURIComponent(name)}`;
+      } else if (userCommand === 'augmentations') {
+        endpoint = '/augmentations';
+      } else if (userCommand === 'districts') {
+        endpoint = '/districts/status';
+      } else if (userCommand === 'news') {
+        endpoint = '/news/latest';
+      } else if (userCommand === 'sys') {
+        endpoint = '/sys/info';
+      } else if (userCommand === 'health') {
+        endpoint = '/health';
+      } else {
+        throw new Error('unknown command');
+      }
 
-  try {
-    let endpoint = '';
-    let query = '';
+      const res = await fetch(`https://cyberpunk-terminal.onrender.com${endpoint}${query}`);
+      const data = await res.json();
 
-    if (userCommand.startsWith('scan ')) {
-      const name = userCommand.replace('scan ', '');
-      endpoint = `/scan`;
-      query = `?name=${encodeURIComponent(name)}`;
-    } else if (userCommand === 'augmentations') {
-      endpoint = '/augmentations';
-    } else if (userCommand === 'districts') {
-      endpoint = '/districts/status';
-    } else if (userCommand === 'news') {
-      endpoint = '/news/latest';
-    } else if (userCommand === 'sys') {
-      endpoint = '/sys/info';
-    } else if (userCommand === 'health') {
-      endpoint = '/health';
-    } else {
-      throw new Error('unknown command');
+      setOutput((prev) => [...prev, JSON.stringify(data, null, 2)]);
+    } catch {
+      setOutput((prev) => [...prev, '⚠ UNKNOWN COMMAND OR NETWORK ERROR']);
     }
 
-    const res = await fetch(`https://cyberpunk-terminal.onrender.com${endpoint}${query}`);
-    const data = await res.json();
-
-    setOutput((prev) => [...prev, JSON.stringify(data, null, 2)]);
-  } catch {
-    setOutput((prev) => [...prev, '⚠ UNKNOWN COMMAND OR NETWORK ERROR']);
-  }
-
-  setLoading(false);
-  setInput('');
-};
-
-
+    setLoading(false);
+    setInput('');
+  };
 
   return (
     <div className="w-full max-w-3xl h-[80vh] bg-black border border-purple-500 shadow-[0_0_60px_#a855f7] p-4 font-mono text-green-400 flex flex-col rounded-lg relative overflow-hidden flicker">
@@ -113,7 +103,7 @@ const runCommand = async () => {
       {/* Output */}
       <div className="flex-1 overflow-y-auto space-y-2 relative z-10">
         {output.map((line, i) => (
-          <div key={i} className="type-line glitch">
+          <div key={i} className="glitch block">
             {line}
           </div>
         ))}
