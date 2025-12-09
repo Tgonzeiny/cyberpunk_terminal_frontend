@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes glitch {
+  0% { text-shadow: 2px 0 magenta, -2px 0 cyan; }
+  20% { text-shadow: -2px 0 magenta, 2px 0 cyan; }
+  40% { text-shadow: 2px 0 magenta, -2px 0 cyan; }
+  60% { text-shadow: -2px 0 magenta, 2px 0 cyan; }
+  80% { text-shadow: 2px 0 magenta, -2px 0 cyan; }
+  100% { text-shadow: none; }
+}
+
+.glitch {
+  animation: glitch 1s infinite;
+}
+
+input {
+  color: #22c55e !important;
+  caret-color: #22c55e !important;
+  background-color: black;
+}
+
+@keyframes scan {
+  from { background-position: 0 0; }
+  to { background-position: 0 100%; }
+}
+
+.scanlines {
+  animation: scan 8s linear infinite;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.type-line {
+  white-space: nowrap;
+  overflow: hidden;
+  display: inline-block;
+  animation: typing 1.2s steps(40, end);
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+.flicker {
+  animation: flicker 0.15s infinite;
+}
